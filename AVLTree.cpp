@@ -11,36 +11,60 @@ using namespace std;
 //finds unbalancednode and roatates()
 void AVLTree::insert(const string &inputData){
     Node* insertNode = new Node(inputData);
-    if(root == nullptr){//empty list
+    if(root == nullptr){//empty tree
         root = insertNode;
     }
-    else{//not empty list
-        //use balence factor to insert in left or right
+    else{//not empty tree
+        //bst insert
+        Node* currNode = root;
+        while(currNode){
+            if(currNode->data > inputData){
+                if(currNode->left == nullptr){
+                    insertNode->parent = currNode;
+                    currNode->left = insertNode;
+                    currNode = nullptr;
+                }
+                else{
+                    currNode = currNode->left;
+                }
+            }                                       
+            else{
+                if(currNode->right == nullptr){
+                    insertNode->parent = currNode;
+                    currNode->right = insertNode;
+                    currNode = nullptr;
+                }
+                else{
+                    currNode = currNode->right;
+                }
+            }
+        }
+        //check for imbalence
+        if(findUnbalancedNode(insertNode) != nullptr){
+            rotate(findUnbalancedNode(insertNode));
+        }
+        //update heights
+        currNode = insertNode->parent;
+        int currHeight = currNode->height;
+        while(currNode){
+            cout << "Updated " << currNode->data << "to " << currHeight + 1 << endl;
+            currNode->height = currHeight + 1;
+            ++currHeight;
+            currNode = currNode->parent;
+        }
     }
 }
 /*Return the balance factor of a given node. <0 mean right heavy, >0 mean left heavy*/
 int AVLTree::balanceFactor(Node* nodeUsed){
-    if(nodeUsed == nullptr){//inputed nullptr node
-        return 0;
+    int lHeight = -1;
+    if(nodeUsed->left){
+        lHeight = nodeUsed->left->height;
     }
-    Node* lNode = nodeUsed->left;
-    Node* rNode = nodeUsed->right;
-    if(lNode){// yes lchild and ??? rchild
-        if(rNode){// yes lchild and yes rchild-----------
-            return lNode->height - rNode->height;
-        }
-        else{// yes lchild and no rchild------------
-            return lNode->height + 1;
-        }
+    int rHeight = -1;
+    if(nodeUsed->right){
+        rHeight = nodeUsed->right->height;
     }
-    else{//no lchild and ?? rchild
-        if(rNode){//no lchild but yes rchild----------
-            return -1 - rNode->height;
-        }
-        else{//no lchild and no rchild-----------
-            return 0;// ( (-1) - (-1) ) = 0
-        }
-    }
+    return lHeight - rHeight;
 }
 /*Traverse and print the tree in inorder notation. Print the string followed by its balance factor in parentheses followed by a , and one space.*/
 void AVLTree::printBalanceFactors(){
@@ -51,18 +75,44 @@ void AVLTree::printBalanceFactors(){
 /* Find and return the closest unbalanced node (with balance factor of 2 or -2) to the inserted node.*/
 Node* AVLTree::findUnbalancedNode(Node* currNode){//first time called the inserted node is currNode
     if(currNode){//curnnode != nullptr
-        if(abs(balanceFactor(currNode)) >1 ){//node violates bf property
+        int bfactor = balanceFactor(currNode); 
+        if(bfactor > 1 || bfactor < -1){//node violates bf property
             return currNode;        
         }
         else{
             return findUnbalancedNode(currNode->parent);
         }
     }
+    return nullptr;
 }
 
 /*Implement four possible imbalance cases and update the parent of the given node.*/
-void AVLTree::rotate(Node* currNode){
-
+void AVLTree::rotate(Node* currNode){//assume currNode is unbalenced with either -2 or 2
+    if(currNode == nullptr){
+        return;
+    }
+    cout << this->balanceFactor(currNode);
+    if(this->balanceFactor(currNode)==2){
+        if(this->balanceFactor(currNode->left) < 0){// LL then RR
+            rotateLeft(currNode->left);
+            rotateRight(currNode);
+        }
+        else{// RR
+            rotateRight(currNode);
+        }
+    }
+    else if(this->balanceFactor(currNode)==-2){//right heavy heavy
+        if(this->balanceFactor(currNode->right) > 0){// RR then LL
+            rotateRight(currNode->right);
+            rotateLeft(currNode);
+        }
+        else{// LL
+            rotateLeft(currNode);
+        }
+    }
+    else{
+        cout << endl << "Error Balancing Factor Calculation" << endl;
+    }
 }
 
 /* Rotate the subtree to left at the given node and returns the new subroot.*/
@@ -93,6 +143,7 @@ Node* AVLTree::rotateLeft(Node* yNode){//assume yNode exists
             tempYParent->right = xNode;
         }
     }
+    return xNode;
 }
 
 /* Rotate the subtree to right at the given node and returns the new subroot.*/
@@ -124,6 +175,7 @@ Node* AVLTree::rotateRight(Node* yNode){//assume yNode and xNode exists
             tempYParent->right = xNode;
         }
     }    
+    return xNode;
 }
 
 void AVLTree::printBalanceFactors(Node* currNode){

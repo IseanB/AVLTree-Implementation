@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "ostream": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp"
     }
 }
